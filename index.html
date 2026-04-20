@@ -711,7 +711,7 @@ function launchGame(id, name) {
           src="${game.embed}"
           allowfullscreen
           allow="autoplay; fullscreen; pointer-lock; gamepad"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-modals"
+          sandbox="allow-scripts allow-forms allow-popups allow-pointer-lock allow-modals"
         ></iframe>
       </div>`;
     const iframe = document.getElementById('game-iframe');
@@ -750,7 +750,7 @@ function stopCurrentGame() {
     canvas._gameKeyHandler = null;
   }
   const iframe = document.getElementById('game-iframe');
-  if (iframe) iframe.src = 'about:blank';
+  if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
 }
 
 function closeGame() {
