@@ -636,6 +636,10 @@ function stopCurrentGame() {
   if (gameLoop) { clearInterval(gameLoop); cancelAnimationFrame(gameLoop); gameLoop = null; }
   document.removeEventListener('keydown', keyDown);
   document.removeEventListener('keyup',   keyUp);
+  if (canvas._gameKeyHandler) {
+    document.removeEventListener('keydown', canvas._gameKeyHandler);
+    canvas._gameKeyHandler = null;
+  }
 }
 
 function closeGame() {
@@ -674,14 +678,19 @@ function startSnake() {
     }
   }
 
-  document.addEventListener('keydown', function sk(e) {
+  canvas._gameKeyHandler = function sk(e) {
     if(!started) started=true;
     const m={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0},
              w:{x:0,y:-1},s:{x:0,y:1},a:{x:-1,y:0},d:{x:1,y:0}};
     const n=m[e.key];
     if(n&&!(n.x===-dir.x&&n.y===-dir.y)) nextDir=n;
-    if(dead&&(e.key===' '||e.key==='Enter')){ document.removeEventListener('keydown',sk); startSnake(); }
-  });
+    if(dead&&(e.key===' '||e.key==='Enter')){
+      document.removeEventListener('keydown',canvas._gameKeyHandler);
+      canvas._gameKeyHandler=null;
+      startSnake();
+    }
+  };
+  document.addEventListener('keydown', canvas._gameKeyHandler);
 
   // touch swipe
   let tx,ty;
@@ -834,12 +843,17 @@ function start2048() {
     if(Math.abs(dx)>Math.abs(dy))move(dx>0?'right':'left');else move(dy>0?'down':'up');
   });
 
-  document.addEventListener('keydown',function t2(e){
-    if(over&&e.key===' '){document.removeEventListener('keydown',t2);start2048();return;}
+  canvas._gameKeyHandler = function t2(e){
+    if(over&&e.key===' '){
+      document.removeEventListener('keydown',canvas._gameKeyHandler);
+      canvas._gameKeyHandler=null;
+      start2048();return;
+    }
     if(won&&e.key===' '){won=false;draw();return;}
     const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
     if(map[e.key]){e.preventDefault();move(map[e.key]);}
-  });
+  };
+  document.addEventListener('keydown',canvas._gameKeyHandler);
 
   draw();
 }
@@ -947,6 +961,7 @@ function startMemory() {
     if(lock)return;
     const r=canvas.getBoundingClientRect();
     const mx=e.clientX-r.left,my=e.clientY-r.top;
+    if(matched===8){canvas.removeEventListener('click',canvas._clickHandler);startMemory();return;}
     const i=getCard(mx,my);
     if(i<0||cards[i].flipped||cards[i].matched)return;
     cards[i].flipped=true;
@@ -989,7 +1004,6 @@ function startMemory() {
     }
   }
   draw();
-  if(matched===8){canvas.addEventListener('click',()=>{canvas.removeEventListener('click',canvas._clickHandler);startMemory();},{once:true});}
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -1034,8 +1048,7 @@ function startTetris() {
       if(board[r].every(Boolean)){board.splice(r,1);board.unshift(Array(COLS).fill(null));cleared++;}
       else r--;
     }
-    lines+=cleared; score+=cleared*100*cleared||0;
-    if(cleared)score+=cleared*100;
+    lines+=cleared; if(cleared)score+=cleared*cleared*100;
     speed=Math.max(100,500-lines*18);
     cur=randPiece();
     if(!valid(cur.cells,cur.ox,cur.oy)){dead=true;draw();}
@@ -1089,8 +1102,12 @@ function startTetris() {
   cur=randPiece();
   let dropTimer=0,lastTime=performance.now();
 
-  document.addEventListener('keydown',function tk(e){
-    if(dead&&(e.key===' '||e.key==='Enter')){document.removeEventListener('keydown',tk);startTetris();return;}
+  canvas._gameKeyHandler = function tk(e){
+    if(dead&&(e.key===' '||e.key==='Enter')){
+      document.removeEventListener('keydown',canvas._gameKeyHandler);
+      canvas._gameKeyHandler=null;
+      startTetris();return;
+    }
     if(!cur)return;
     if(e.key==='ArrowLeft'&&valid(cur.cells,cur.ox-1,cur.oy))cur.ox--;
     if(e.key==='ArrowRight'&&valid(cur.cells,cur.ox+1,cur.oy))cur.ox++;
@@ -1098,7 +1115,8 @@ function startTetris() {
     if(e.key==='ArrowUp'||e.key==='z')rotate();
     if(e.key===' '){while(valid(cur.cells,cur.ox,cur.oy+1))cur.oy++;place();}
     draw();
-  });
+  };
+  document.addEventListener('keydown',canvas._gameKeyHandler);
 
   function loop(ts){
     if(dead)return;
@@ -1193,10 +1211,10 @@ function startFlappy() {
   canvas._clickHandler=jump;
   canvas.addEventListener('click',canvas._clickHandler);
   canvas.addEventListener('touchstart',jump);
-  document.addEventListener('keydown',function fk(e){
+  canvas._gameKeyHandler=function fk(e){
     if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();jump();}
-    if(modal.classList.contains('open')===false)document.removeEventListener('keydown',fk);
-  });
+  };
+  document.addEventListener('keydown',canvas._gameKeyHandler);
 
   function draw(){
     // sky
@@ -1433,11 +1451,11 @@ function startMinesweeper() {
 function startTicTac() {
   const W=canvas.width,H=canvas.height;
   const SZ=Math.min(W,H)*.8*.33, OX=(W-SZ*3)/2, OY=(H-SZ*3)/2;
-  let board=Array(9).fill(''),turn='X',won=null,draws=0;
+  let board=Array(9).fill(''),turn='X',won=null;
 
   function check(b){
     const L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-    for(const [a,b2,c] of L){if(b[a]&&b[a]===b[b2]&&b[a]===b[c])return{winner:b[a],line:[a,b2,c]};}
+    for(const [a,mid,c] of L){if(b[a]&&b[a]===b[mid]&&b[a]===b[c])return{winner:b[a],line:[a,mid,c]};}
     if(b.every(Boolean))return{winner:'draw'};
     return null;
   }
@@ -1492,7 +1510,7 @@ function startTicTac() {
     });
     // winning line
     if(won&&won.line){
-      const [a,b2,c]=won.line;
+      const [a,mid,c]=won.line;
       const ax=OX+(a%3)*SZ+SZ/2,ay=OY+Math.floor(a/3)*SZ+SZ/2;
       const cx2=OX+(c%3)*SZ+SZ/2,cy2=OY+Math.floor(c/3)*SZ+SZ/2;
       ctx.strokeStyle='#fbbf24';ctx.lineWidth=5;
