@@ -416,7 +416,7 @@
     <div class="lock-icon">🔐</div>
     <h2>Members Area</h2>
     <p>Enter your access code to continue.</p>
-    <input id="pw-input" type="password" maxlength="64" minlength="8" placeholder="Enter access code" autocomplete="off" />
+    <input id="pw-input" type="password" maxlength="64" placeholder="Enter access code" autocomplete="off" />
     <div id="pw-error"></div>
     <button id="pw-submit">Enter</button>
     <button id="pw-cancel">Cancel</button>
@@ -525,13 +525,6 @@ async function checkPassword() {
   }
   if (state.nextTryAt > now) {
     pwError.textContent = `Wait ${Math.ceil((state.nextTryAt - now) / 1000)}s before retrying.`;
-    return;
-  }
-
-  if (pwInput.value.length < 8) {
-    pwError.textContent = 'Access code must be at least 8 characters.';
-    pwInput.classList.add('error');
-    setTimeout(() => pwInput.classList.remove('error'), 300);
     return;
   }
 
