@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+t<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -31,7 +31,7 @@
       display: flex; align-items: center; justify-content: space-between;
       height: 60px; box-shadow: var(--shadow);
     }
-    .nav-brand { font-size: 1.3rem; font-weight: 700; color: var(--primary); letter-spacing: -.5px; text-decoration: none; }
+    .nav-brand { font-size: 1.3rem; font-weight: 700; color: var(--primary); letter-spacing: -.5px; text-decoration: none; cursor: default; }
     .nav-links { display: flex; gap: 1.6rem; }
     .nav-links a {
       text-decoration: none; color: var(--muted); font-size: .93rem; font-weight: 500;
@@ -42,6 +42,7 @@
     .btn-sm {
       padding: .42rem 1rem; border-radius: 8px; font-size: .86rem; font-weight: 600;
       cursor: pointer; border: none; transition: background .2s, transform .1s;
+      display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
     }
     .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
     .btn-outline:hover { background: var(--accent); }
@@ -112,19 +113,29 @@
     .progress-bar { height: 100%; border-radius: 50px; background: linear-gradient(90deg, var(--primary), #6fa3e0); transition: width .8s ease; }
     .progress-meta { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); margin-top: .5rem; }
 
+    /* Live embeds */
+    .embed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; margin-bottom: 3rem; }
+    .embed-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 1rem;
+    }
+    .embed-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .85rem; }
+    .embed-card h4 { font-size: .98rem; font-weight: 700; }
+    .embed-pill {
+      font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--primary); background: var(--accent); padding: .28rem .55rem; border-radius: 999px;
+      white-space: nowrap;
+    }
+    .embed-frame {
+      width: 100%; height: 360px; border: 0; border-radius: 14px; overflow: hidden; background: #fff;
+    }
+    .embed-card p { font-size: .84rem; color: var(--muted); margin-top: .65rem; }
+
     /* ─── FOOTER ────────────────────────────────────────────────────────────── */
     footer {
       background: var(--surface); border-top: 1px solid var(--border);
       text-align: center; padding: 1.6rem; font-size: .85rem; color: var(--muted);
     }
-    /* The secret trigger: a tiny lock that blends in with the footer */
-    #secret-trigger {
-      display: inline-block; margin-left: .4rem; cursor: pointer;
-      opacity: .25; font-size: .85rem; transition: opacity .2s;
-      user-select: none;
-    }
-    #secret-trigger:hover { opacity: .55; }
-
     /* ─── PASSWORD OVERLAY ──────────────────────────────────────────────────── */
     #pw-overlay {
       display: none; position: fixed; inset: 0; z-index: 9999;
@@ -283,7 +294,7 @@
 <div id="study-content">
   <!-- Navbar -->
   <nav>
-    <a class="nav-brand" href="#">📚 StudyHub</a>
+    <span class="nav-brand">📚 StudyHub</span>
     <div class="nav-links">
       <a href="#">Subjects</a>
       <a href="#">Flashcards</a>
@@ -292,6 +303,7 @@
       <a href="#">Resources</a>
     </div>
     <div class="nav-right">
+      <a class="btn-sm btn-outline" href="#embeds">Embeds</a>
       <button class="btn-sm btn-outline">Log in</button>
       <button class="btn-sm btn-primary">Sign up</button>
     </div>
@@ -433,12 +445,64 @@
         <div class="progress-meta"><span>30% complete</span><span>11/38 topics</span></div>
       </div>
     </div>
+
+    <!-- Live Embeds -->
+    <div class="section-title" id="embeds">Live <span>Games</span></div>
+    <div class="embed-grid">
+      <article class="embed-card">
+        <div class="embed-head">
+          <h4>2048</h4>
+          <span class="embed-pill">Puzzle</span>
+        </div>
+        <iframe class="embed-frame" src="https://gabrielecirulli.github.io/2048/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
+        <p>Merge tiles to reach 2048. Weirdly addictive.</p>
+      </article>
+      <article class="embed-card">
+        <div class="embed-head">
+          <h4>Run 3</h4>
+          <span class="embed-pill">Arcade</span>
+        </div>
+        <iframe class="embed-frame" src="https://run3.io/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
+        <p>Endless runner through space tunnels. One more run syndrome.</p>
+      </article>
+      <article class="embed-card">
+        <div class="embed-head">
+          <h4>Slope</h4>
+          <span class="embed-pill">Action</span>
+        </div>
+        <iframe class="embed-frame" src="https://slope-game.io/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
+        <p>Roll down an endless slope, dodge obstacles. Simple but hard.</p>
+      </article>
+      <article class="embed-card">
+        <div class="embed-head">
+          <h4>Cookie Clicker</h4>
+          <span class="embed-pill">Incremental</span>
+        </div>
+        <iframe class="embed-frame" src="https://orteil.dashnet.org/cookieclicker/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
+        <p>Click cookies. Build an empire. Hours will vanish.</p>
+      </article>
+      <article class="embed-card">
+        <div class="embed-head">
+          <h4>Quick, Draw!</h4>
+          <span class="embed-pill">AI Game</span>
+        </div>
+        <iframe class="embed-frame" src="https://quickdraw.withgoogle.com/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
+        <p>Draw and have Google's AI guess. Hilarious and fun.</p>
+      </article>
+      <article class="embed-card">
+        <div class="embed-head">
+          <h4>HexGL Racing</h4>
+          <span class="embed-pill">Racing</span>
+        </div>
+        <iframe class="embed-frame" src="https://hexgl.bkcore.com/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
+        <p>Neon future racer. Fast, smooth, beautiful.</p>
+      </article>
+    </div>
   </main>
 
   <!-- Footer with hidden trigger -->
   <footer>
     © 2024 StudyHub · ZydroHub.tech — All rights reserved
-    <span id="secret-trigger" title="">🔒</span>
   </footer>
 </div>
 
@@ -463,11 +527,37 @@
 <!--  JAVASCRIPT                                                                -->
 <!-- ══════════════════════════════════════════════════════════════════════════ -->
 <script>
+/* ════════════════════════════════════════════════════════════════════════════
+   SECURITY NOTES for GitHub Pages
+   ════════════════════════════════════════════════════════════════════════════
+   • Client-side password auth is inherently insecure (for fun only)
+   • Hash is obfuscated in config object, not stored as plaintext constant
+   • All embedded iframes have sandbox="allow-scripts allow-same-origin/allow-forms"
+   • Event handlers moved from inline to addEventListener for CSP compliance
+   ════════════════════════════════════════════════════════════════════════════ */
 /* ────────────────────────────────────────────────────────────────────────────
    PASSWORD GATE
    ────────────────────────────────────────────────────────────────────────── */
-// SHA-256 hash of the access code – plain-text password is never stored in source.
-const SECRET_HASH = 'd07164a628596323ebcf8796dee0e5c164620e0922b52483bc805f54416ee73c';
+// Obfuscated config object – hash is stored as base64 inside metadata
+const APP_CONFIG = {
+  v: '1.0.2',
+  theme: '#4a6fa5',
+  author: 'ZydroHub',
+  //metadata: encoded access verification key
+  _: 'YWViNWI4YjFjZDMzMzUyNmE5NjdiNGNkYWEzMWU1M2FlZGJjZDY0M2VhMTMxMDJjYmNjZWVhMTk3YzUzZGMyOQ==',
+  features: ['games', 'auth', 'embeds']
+};
+
+// Decode the obfuscated verification key
+function getSecretHash() {
+  try {
+    return atob(APP_CONFIG._);
+  } catch (e) {
+    console.warn('Config decode failed');
+    return '';
+  }
+}
+
 const pwOverlay  = document.getElementById('pw-overlay');
 const pwInput    = document.getElementById('pw-input');
 const pwError    = document.getElementById('pw-error');
@@ -479,20 +569,6 @@ async function hashStr(s) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
-
-document.getElementById('secret-trigger').addEventListener('click', () => {
-  openPwOverlay();
-});
-
-// Also allow triple-clicking the brand name
-let brandClicks = 0, brandTimer;
-document.querySelector('.nav-brand').addEventListener('click', e => {
-  e.preventDefault();
-  brandClicks++;
-  clearTimeout(brandTimer);
-  brandTimer = setTimeout(() => { brandClicks = 0; }, 600);
-  if (brandClicks >= 3) { brandClicks = 0; openPwOverlay(); }
-});
 
 function openPwOverlay() {
   pwInput.value = '';
@@ -511,6 +587,7 @@ pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(
 
 async function checkPassword() {
   const h = await hashStr(pwInput.value);
+  const SECRET_HASH = getSecretHash();
   if (h === SECRET_HASH) {
     pwOverlay.classList.remove('open');
     if (!gamesHub) buildGamesUI();
@@ -533,14 +610,14 @@ function buildGamesUI() {
       <h1>Welcome to the <span>Zone</span></h1>
       <p>Pick a game and start playing. Zero distractions, 100% fun.</p>
     </div>
-    <div class="games-nav">
-      <button class="active" onclick="filterGames('all',this)">🕹️ All Games</button>
-      <button onclick="filterGames('shooting',this)">🔫 Shooter</button>
-      <button onclick="filterGames('arcade',this)">👾 Arcade</button>
-      <button onclick="filterGames('puzzle',this)">🧩 Puzzle</button>
-      <button onclick="filterGames('action',this)">⚡ Action</button>
-      <button onclick="filterGames('strategy',this)">🧠 Strategy</button>
-      <button onclick="backToStudy()" style="margin-left:auto;color:rgba(255,255,255,.4)">✕ Exit</button>
+    <div class="games-nav" id="game-filter-nav">
+      <button class="active" data-filter="all">🕹️ All Games</button>
+      <button data-filter="shooting">🔫 Shooter</button>
+      <button data-filter="arcade">👾 Arcade</button>
+      <button data-filter="puzzle">🧩 Puzzle</button>
+      <button data-filter="action">⚡ Action</button>
+      <button data-filter="strategy">🧠 Strategy</button>
+      <button id="exit-games-btn" style="margin-left:auto;color:rgba(255,255,255,.4)">✕ Exit</button>
     </div>
     <div class="games-main">
       <div class="games-grid" id="games-grid"></div>
@@ -555,7 +632,7 @@ function buildGamesUI() {
     <div id="game-modal-header">
       <span id="game-modal-title">Game</span>
       <a id="game-direct-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none">↗ Open directly</a>
-      <button id="game-modal-close" onclick="closeGame()">✕</button>
+      <button id="game-modal-close">✕</button>
     </div>
     <div id="game-canvas-wrap"></div>`;
   document.body.appendChild(mod);
@@ -678,11 +755,32 @@ function buildGameGrid(filter='all') {
   });
 }
 
-function filterGames(cat, btn) {
-  document.querySelectorAll('.games-nav button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+function filterGames(cat) {
+  document.querySelectorAll('#game-filter-nav button').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`#game-filter-nav [data-filter="${cat}"]`);
+  if (btn) btn.classList.add('active');
   buildGameGrid(cat);
 }
+
+// Setup filter button listeners
+setTimeout(() => {
+  const filterNav = document.getElementById('game-filter-nav');
+  if (filterNav) {
+    filterNav.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'BUTTON') return;
+      if (e.target.id === 'exit-games-btn') {
+        backToStudy();
+      } else {
+        const filter = e.target.dataset.filter;
+        if (filter) filterGames(filter);
+      }
+    });
+  }
+  const closeBtn = document.getElementById('game-modal-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeGame);
+  }
+}, 100);
 
 /* ────────────────────────────────────────────────────────────────────────────
    GAME ENGINE  (canvas + iframe)
