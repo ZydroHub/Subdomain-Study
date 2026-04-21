@@ -416,7 +416,7 @@
     <div class="lock-icon">🔐</div>
     <h2>Members Area</h2>
     <p>Enter your access code to continue.</p>
-    <input id="pw-input" type="password" maxlength="8" placeholder="· · · ·" autocomplete="off" />
+    <input id="pw-input" type="password" maxlength="64" minlength="8" placeholder="Enter access code" autocomplete="off" />
     <div id="pw-error"></div>
     <button id="pw-submit">Enter</button>
     <button id="pw-cancel">Cancel</button>
@@ -429,14 +429,7 @@
 <!--  JAVASCRIPT                                                                -->
 <!-- ══════════════════════════════════════════════════════════════════════════ -->
 <script>
-/* ════════════════════════════════════════════════════════════════════════════
-   SECURITY NOTES for GitHub Pages
-   ════════════════════════════════════════════════════════════════════════════
-   • Client-side password auth is inherently insecure (for fun only)
-   • Hash is obfuscated in config object, not stored as plaintext constant
-   • All embedded iframes have sandbox="allow-scripts allow-same-origin/allow-forms"
-   • Event handlers moved from inline to addEventListener for CSP compliance
-   ════════════════════════════════════════════════════════════════════════════ */
+(() => {
 /* ────────────────────────────────────────────────────────────────────────────
    PASSWORD GATE
    ────────────────────────────────────────────────────────────────────────── */
@@ -455,7 +448,6 @@ function getSecretHash() {
   try {
     return atob(APP_CONFIG._);
   } catch (e) {
-    console.warn('Config decode failed');
     return '';
   }
 }
@@ -466,6 +458,11 @@ const pwError    = document.getElementById('pw-error');
 const studyCont  = document.getElementById('study-content');
 // gamesHub, modal, canvas, ctx, modalTitle are assigned inside buildGamesUI()
 let gamesHub, modal, canvas, ctx, modalTitle;
+const AUTH_STATE_KEY = 'zh_auth_state_v1';
+const MAX_FAILED_ATTEMPTS = 6;
+const BASE_COOLDOWN_MS = 1200;
+const MAX_COOLDOWN_MS = 12000;
+const LOCKOUT_MS = 15 * 60 * 1000;
 
 async function hashStr(s) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -473,24 +470,43 @@ async function hashStr(s) {
 }
 
 function openPwOverlay() {
+  const state = getAuthState();
   pwInput.value = '';
-  pwError.textContent = '';
+  pwError.textContent = state.lockedUntil > Date.now()
+    ? `Locked. Try again in ${Math.ceil((state.lockedUntil - Date.now()) / 1000)}s.`
+    : '';
   pwInput.classList.remove('error');
   pwOverlay.classList.add('open');
   setTimeout(() => pwInput.focus(), 80);
+}
+
+function getAuthState() {
+  try {
+    const raw = localStorage.getItem(AUTH_STATE_KEY);
+    if (!raw) return { failed: 0, lockedUntil: 0, nextTryAt: 0 };
+    const parsed = JSON.parse(raw);
+    return {
+      failed: Number(parsed.failed) || 0,
+      lockedUntil: Number(parsed.lockedUntil) || 0,
+      nextTryAt: Number(parsed.nextTryAt) || 0,
+    };
+  } catch {
+    return { failed: 0, lockedUntil: 0, nextTryAt: 0 };
+  }
+}
+
+function setAuthState(state) {
+  localStorage.setItem(AUTH_STATE_KEY, JSON.stringify(state));
+}
+
+function resetAuthState() {
+  setAuthState({ failed: 0, lockedUntil: 0, nextTryAt: 0 });
 }
 
 const secretTrigger = document.getElementById('secret-trigger');
 if (secretTrigger) {
   secretTrigger.addEventListener('click', openPwOverlay);
 }
-
-document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
-    e.preventDefault();
-    openPwOverlay();
-  }
-});
 
 document.getElementById('pw-cancel').addEventListener('click', () => {
   pwOverlay.classList.remove('open');
@@ -500,14 +516,43 @@ document.getElementById('pw-submit').addEventListener('click', checkPassword);
 pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
 
 async function checkPassword() {
+  const now = Date.now();
+  const state = getAuthState();
+
+  if (state.lockedUntil > now) {
+    pwError.textContent = `Locked. Try again in ${Math.ceil((state.lockedUntil - now) / 1000)}s.`;
+    return;
+  }
+  if (state.nextTryAt > now) {
+    pwError.textContent = `Wait ${Math.ceil((state.nextTryAt - now) / 1000)}s before retrying.`;
+    return;
+  }
+
+  if (pwInput.value.length < 8) {
+    pwError.textContent = 'Access code must be at least 8 characters.';
+    pwInput.classList.add('error');
+    setTimeout(() => pwInput.classList.remove('error'), 300);
+    return;
+  }
+
   const h = await hashStr(pwInput.value);
   const SECRET_HASH = getSecretHash();
   if (h === SECRET_HASH) {
+    resetAuthState();
     pwOverlay.classList.remove('open');
     if (!gamesHub) buildGamesUI();
     unlockGames();
   } else {
+    const failed = state.failed + 1;
+    const cooldown = Math.min(BASE_COOLDOWN_MS * (2 ** Math.min(failed, 5)), MAX_COOLDOWN_MS);
+    const nextTryAt = Date.now() + cooldown;
+    const lockedUntil = failed >= MAX_FAILED_ATTEMPTS ? Date.now() + LOCKOUT_MS : 0;
+    setAuthState({ failed, nextTryAt, lockedUntil });
+
     pwError.textContent = 'Incorrect code. Try again.';
+    if (lockedUntil > 0) {
+      pwError.textContent = `Too many attempts. Locked for ${Math.ceil(LOCKOUT_MS / 60000)} minutes.`;
+    }
     pwInput.classList.add('error');
     pwInput.value = '';
     setTimeout(() => pwInput.classList.remove('error'), 400);
@@ -1608,6 +1653,8 @@ const GAME_ENGINES = {
   zombie:    startZombieShooter,
   geodash:   startGeoDash,
 };
+
+})();
 </script>
 </body>
 </html>
