@@ -137,11 +137,11 @@
       text-align: center; padding: 1.6rem; font-size: .85rem; color: var(--muted);
     }
     #secret-trigger {
-      display: inline-block; margin-left: .4rem; cursor: pointer;
-      opacity: .2; font-size: .85rem; transition: opacity .2s;
+      display: inline-block; margin-left: .35rem; cursor: default;
+      opacity: .06; font-size: .7rem; transition: opacity .2s;
       user-select: none;
     }
-    #secret-trigger:hover { opacity: .55; }
+    #secret-trigger:hover { opacity: .2; }
     /* ─── PASSWORD OVERLAY ──────────────────────────────────────────────────── */
     #pw-overlay {
       display: none; position: fixed; inset: 0; z-index: 9999;
@@ -404,7 +404,7 @@
   <!-- Footer with hidden trigger -->
   <footer>
     © 2024 StudyHub · ZydroHub.tech — All rights reserved
-    <span id="secret-trigger" title="">🔒</span>
+    <span id="secret-trigger" title="">•</span>
   </footer>
 </div>
 
@@ -430,125 +430,106 @@
 <!-- ══════════════════════════════════════════════════════════════════════════ -->
 <script>
 (() => {
-/* ────────────────────────────────────────────────────────────────────────────
-   PASSWORD GATE
-   ────────────────────────────────────────────────────────────────────────── */
-// Obfuscated config object – hash is stored as base64 inside metadata
-const APP_CONFIG = {
-  v: '1.0.2',
-  theme: '#4a6fa5',
-  author: 'ZydroHub',
-  //metadata: encoded access verification key
-  _: 'YWViNWI4YjFjZDMzMzUyNmE5NjdiNGNkYWEzMWU1M2FlZGJjZDY0M2VhMTMxMDJjYmNjZWVhMTk3YzUzZGMyOQ==',
-  features: ['games', 'auth', 'embeds']
-};
+const _0 = ['YWViNWI4YjFj', 'ZDMzMzUyNmE5', 'NjdiNGNkYWEz', 'MWU1M2FlZGJj', 'ZDY0M2VhMTMx', 'MDJjYmNjZWVh', 'MTk3YzUzZGMy', 'OQ=='];
+const _1 = document.getElementById('pw-overlay');
+const _2 = document.getElementById('pw-input');
+const _3 = document.getElementById('pw-error');
+const _4 = document.getElementById('study-content');
+let gamesHub, modal, canvas, ctx, modalTitle;
+const _5 = 'zh_auth_state_v1';
+const _6 = 6;
+const _7 = 1200;
+const _8 = 12000;
+const _9 = 15 * 60 * 1000;
 
-// Decode the obfuscated verification key
-function getSecretHash() {
+async function _a(s) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+function _b() {
   try {
-    return atob(APP_CONFIG._);
-  } catch (e) {
+    return atob(_0.join(''));
+  } catch {
     return '';
   }
 }
 
-const pwOverlay  = document.getElementById('pw-overlay');
-const pwInput    = document.getElementById('pw-input');
-const pwError    = document.getElementById('pw-error');
-const studyCont  = document.getElementById('study-content');
-// gamesHub, modal, canvas, ctx, modalTitle are assigned inside buildGamesUI()
-let gamesHub, modal, canvas, ctx, modalTitle;
-const AUTH_STATE_KEY = 'zh_auth_state_v1';
-const MAX_FAILED_ATTEMPTS = 6;
-const BASE_COOLDOWN_MS = 1200;
-const MAX_COOLDOWN_MS = 12000;
-const LOCKOUT_MS = 15 * 60 * 1000;
-
-async function hashStr(s) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-function openPwOverlay() {
-  const state = getAuthState();
-  pwInput.value = '';
-  pwError.textContent = state.lockedUntil > Date.now()
-    ? `Locked. Try again in ${Math.ceil((state.lockedUntil - Date.now()) / 1000)}s.`
+function _c() {
+  const s = _d();
+  _2.value = '';
+  _3.textContent = s.lockedUntil > Date.now()
+    ? `Locked. Try again in ${Math.ceil((s.lockedUntil - Date.now()) / 1000)}s.`
     : '';
-  pwInput.classList.remove('error');
-  pwOverlay.classList.add('open');
-  setTimeout(() => pwInput.focus(), 80);
+  _2.classList.remove('error');
+  _1.classList.add('open');
+  setTimeout(() => _2.focus(), 80);
 }
 
-function getAuthState() {
+function _d() {
   try {
-    const raw = localStorage.getItem(AUTH_STATE_KEY);
-    if (!raw) return { failed: 0, lockedUntil: 0, nextTryAt: 0 };
-    const parsed = JSON.parse(raw);
+    const r = localStorage.getItem(_5);
+    if (!r) return { failed: 0, lockedUntil: 0, nextTryAt: 0 };
+    const p = JSON.parse(r);
     return {
-      failed: Number(parsed.failed) || 0,
-      lockedUntil: Number(parsed.lockedUntil) || 0,
-      nextTryAt: Number(parsed.nextTryAt) || 0,
+      failed: Number(p.failed) || 0,
+      lockedUntil: Number(p.lockedUntil) || 0,
+      nextTryAt: Number(p.nextTryAt) || 0,
     };
   } catch {
     return { failed: 0, lockedUntil: 0, nextTryAt: 0 };
   }
 }
 
-function setAuthState(state) {
-  localStorage.setItem(AUTH_STATE_KEY, JSON.stringify(state));
+function _e(s) {
+  localStorage.setItem(_5, JSON.stringify(s));
 }
 
-function resetAuthState() {
-  setAuthState({ failed: 0, lockedUntil: 0, nextTryAt: 0 });
+function _f() {
+  _e({ failed: 0, lockedUntil: 0, nextTryAt: 0 });
 }
 
-const secretTrigger = document.getElementById('secret-trigger');
-if (secretTrigger) {
-  secretTrigger.addEventListener('click', openPwOverlay);
-}
+const _g = document.getElementById('secret-trigger');
+if (_g) _g.addEventListener('click', _c);
 
 document.getElementById('pw-cancel').addEventListener('click', () => {
-  pwOverlay.classList.remove('open');
+  _1.classList.remove('open');
 });
 
-document.getElementById('pw-submit').addEventListener('click', checkPassword);
-pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+document.getElementById('pw-submit').addEventListener('click', _h);
+_2.addEventListener('keydown', e => { if (e.key === 'Enter') _h(); });
 
-async function checkPassword() {
-  const now = Date.now();
-  const state = getAuthState();
+async function _h() {
+  const n = Date.now();
+  const s = _d();
 
-  if (state.lockedUntil > now) {
-    pwError.textContent = `Locked. Try again in ${Math.ceil((state.lockedUntil - now) / 1000)}s.`;
+  if (s.lockedUntil > n) {
+    _3.textContent = `Locked. Try again in ${Math.ceil((s.lockedUntil - n) / 1000)}s.`;
     return;
   }
-  if (state.nextTryAt > now) {
-    pwError.textContent = `Wait ${Math.ceil((state.nextTryAt - now) / 1000)}s before retrying.`;
+  if (s.nextTryAt > n) {
+    _3.textContent = `Wait ${Math.ceil((s.nextTryAt - n) / 1000)}s before retrying.`;
     return;
   }
 
-  const h = await hashStr(pwInput.value);
-  const SECRET_HASH = getSecretHash();
-  if (h === SECRET_HASH) {
-    resetAuthState();
-    pwOverlay.classList.remove('open');
+  const h = await _a(_2.value);
+  if (h === _b()) {
+    _f();
+    _1.classList.remove('open');
     if (!gamesHub) buildGamesUI();
     unlockGames();
   } else {
-    const failed = state.failed + 1;
-    const cooldown = Math.min(BASE_COOLDOWN_MS * (2 ** Math.min(failed, 5)), MAX_COOLDOWN_MS);
-    const nextTryAt = Date.now() + cooldown;
-    const lockedUntil = failed >= MAX_FAILED_ATTEMPTS ? Date.now() + LOCKOUT_MS : 0;
-    setAuthState({ failed, nextTryAt, lockedUntil });
+    const f = s.failed + 1;
+    const c = Math.min(_7 * (2 ** Math.min(f, 5)), _8);
+    const t = Date.now() + c;
+    const l = f >= _6 ? Date.now() + _9 : 0;
+    _e({ failed: f, nextTryAt: t, lockedUntil: l });
 
-    pwError.textContent = 'Incorrect code. Try again.';
-    if (lockedUntil > 0) {
-      pwError.textContent = `Too many attempts. Locked for ${Math.ceil(LOCKOUT_MS / 60000)} minutes.`;
-    }
-    pwInput.classList.add('error');
-    pwInput.value = '';
-    setTimeout(() => pwInput.classList.remove('error'), 400);
+    _3.textContent = 'Incorrect code. Try again.';
+    if (l > 0) _3.textContent = `Too many attempts. Locked for ${Math.ceil(_9 / 60000)} minutes.`;
+    _2.classList.add('error');
+    _2.value = '';
+    setTimeout(() => _2.classList.remove('error'), 400);
   }
 }
 
@@ -597,7 +578,7 @@ function buildGamesUI() {
 }
 
 function unlockGames() {
-  studyCont.classList.add('hidden');
+  _4.classList.add('hidden');
   gamesHub.classList.add('open');
   document.title = '🎮 Arcade Zone — ZydroHub';
 }
@@ -605,7 +586,7 @@ function unlockGames() {
 function backToStudy() {
   closeGame();
   gamesHub.classList.remove('open');
-  studyCont.classList.remove('hidden');
+  _4.classList.remove('hidden');
   document.title = 'Study Hub — ZydroHub';
 }
 
