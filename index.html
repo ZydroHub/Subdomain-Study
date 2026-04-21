@@ -1,4 +1,4 @@
-t<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -136,6 +136,12 @@ t<!DOCTYPE html>
       background: var(--surface); border-top: 1px solid var(--border);
       text-align: center; padding: 1.6rem; font-size: .85rem; color: var(--muted);
     }
+    #secret-trigger {
+      display: inline-block; margin-left: .4rem; cursor: pointer;
+      opacity: .2; font-size: .85rem; transition: opacity .2s;
+      user-select: none;
+    }
+    #secret-trigger:hover { opacity: .55; }
     /* ─── PASSWORD OVERLAY ──────────────────────────────────────────────────── */
     #pw-overlay {
       display: none; position: fixed; inset: 0; z-index: 9999;
@@ -393,63 +399,12 @@ t<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Live Embeds -->
-    <div class="section-title" id="embeds">Live <span>Games</span></div>
-    <div class="embed-grid">
-      <article class="embed-card">
-        <div class="embed-head">
-          <h4>2048</h4>
-          <span class="embed-pill">Puzzle</span>
-        </div>
-        <iframe class="embed-frame" src="https://gabrielecirulli.github.io/2048/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
-        <p>Merge tiles to reach 2048. Weirdly addictive.</p>
-      </article>
-      <article class="embed-card">
-        <div class="embed-head">
-          <h4>Run 3</h4>
-          <span class="embed-pill">Arcade</span>
-        </div>
-        <iframe class="embed-frame" src="https://run3.io/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
-        <p>Endless runner through space tunnels. One more run syndrome.</p>
-      </article>
-      <article class="embed-card">
-        <div class="embed-head">
-          <h4>Slope</h4>
-          <span class="embed-pill">Action</span>
-        </div>
-        <iframe class="embed-frame" src="https://slope-game.io/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
-        <p>Roll down an endless slope, dodge obstacles. Simple but hard.</p>
-      </article>
-      <article class="embed-card">
-        <div class="embed-head">
-          <h4>Cookie Clicker</h4>
-          <span class="embed-pill">Incremental</span>
-        </div>
-        <iframe class="embed-frame" src="https://orteil.dashnet.org/cookieclicker/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
-        <p>Click cookies. Build an empire. Hours will vanish.</p>
-      </article>
-      <article class="embed-card">
-        <div class="embed-head">
-          <h4>Quick, Draw!</h4>
-          <span class="embed-pill">AI Game</span>
-        </div>
-        <iframe class="embed-frame" src="https://quickdraw.withgoogle.com/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
-        <p>Draw and have Google's AI guess. Hilarious and fun.</p>
-      </article>
-      <article class="embed-card">
-        <div class="embed-head">
-          <h4>HexGL Racing</h4>
-          <span class="embed-pill">Racing</span>
-        </div>
-        <iframe class="embed-frame" src="https://hexgl.bkcore.com/" allowfullscreen sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
-        <p>Neon future racer. Fast, smooth, beautiful.</p>
-      </article>
-    </div>
   </main>
 
   <!-- Footer with hidden trigger -->
   <footer>
     © 2024 StudyHub · ZydroHub.tech — All rights reserved
+    <span id="secret-trigger" title="">🔒</span>
   </footer>
 </div>
 
@@ -524,6 +479,18 @@ function openPwOverlay() {
   pwOverlay.classList.add('open');
   setTimeout(() => pwInput.focus(), 80);
 }
+
+const secretTrigger = document.getElementById('secret-trigger');
+if (secretTrigger) {
+  secretTrigger.addEventListener('click', openPwOverlay);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
+    e.preventDefault();
+    openPwOverlay();
+  }
+});
 
 document.getElementById('pw-cancel').addEventListener('click', () => {
   pwOverlay.classList.remove('open');
